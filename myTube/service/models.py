@@ -8,6 +8,7 @@ class Video(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     length_time = models.PositiveIntegerField(blank=True)
     pre_view = models.ImageField(blank=True)
+
     #the_video = video
     tags = models.ManyToManyField('TagPost', blank=True, related_name='tags', verbose_name='Теги')
     description = models.TextField(blank=True)
