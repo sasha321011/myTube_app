@@ -5,6 +5,7 @@ from service.views import VideoView
 urlpatterns = [
 
 ]
+
 router = routers.DefaultRouter()
 router.register(r'api/video',VideoView)
 

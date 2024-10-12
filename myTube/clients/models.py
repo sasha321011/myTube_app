@@ -23,6 +23,7 @@ class User(AbstractUser):
     date_birth = models.DateTimeField(blank=True, null=True, verbose_name='Дата рождения')
 
 
+
 class Subscription(models.Model):
     subscriber = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='subscriptions')
     channel = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='subscribers')
