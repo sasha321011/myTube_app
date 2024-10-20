@@ -41,7 +41,8 @@ INSTALLED_APPS = [
 
     'clients',
     'service',
-    'debug_toolbar'
+    'debug_toolbar',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -144,3 +145,10 @@ LOGGING = {
         }
     }
 }
+
+
+
+
+
+
+
