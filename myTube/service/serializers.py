@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from service.models import Video, Comment, UserVideoRelation
+from service.models import Video, Comment, UserVideoRelation, TagPost
 
 
 class FilterCommentListSerializer(serializers.ListSerializer):
@@ -25,10 +25,15 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ("id", "author_name", "children", "text")
 
 
+class TagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagPost
+        fields = ("id", "tag_name", "tag_slug")
+
+
 class VideosSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="author.username")
-    # email = serializers.CharField(source='author.email')
-    # comments = CommentSerializer(many=True, read_only=True, source="vid_com")
+    tags_name = TagsSerializer(many=True, read_only=True, source="tags")
 
     class Meta:
         model = Video
@@ -36,11 +41,11 @@ class VideosSerializer(serializers.ModelSerializer):
             "name",
             "slug",
             "created_at",
-            "tags",
             "length_time",
             "pre_view",
             "author",
             "author_name",
+            "tags_name",
         )
 
 
@@ -48,6 +53,7 @@ class OneVideoSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="author.username")
     # email = serializers.CharField(source='author.email')
     comments = CommentSerializer(many=True, read_only=True, source="vid_com")
+    tags_name = TagsSerializer(many=True, read_only=True, source="tags")
 
     class Meta:
         model = Video
@@ -55,7 +61,7 @@ class OneVideoSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "created_at",
-            "tags",
+            "tags_name",
             "length_time",
             "author",
             "author_name",
@@ -97,3 +103,28 @@ class CommentCreaetSerializer(serializers.ModelSerializer):
             user_comment=user, parent=parent, video_comment=video_comment, text=text
         )
         return com
+    
+class VideoCreaetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = ("name","slug","length_time","pre_view","tags","description")
+
+    def create(self, validated_data):
+        author = self.context["request"].user
+        name = validated_data["name"]
+        slug = validated_data["slug"]
+        length_time = validated_data["length_time"]
+        pre_view = validated_data["pre_view"]
+        tags = validated_data.pop("tags", [])
+        description = validated_data["description"]
+
+        author_video, created = Video.objects.update_or_create(
+            author=author,
+            name=name,
+            length_time=length_time,
+            slug=slug,
+            pre_view=pre_view,
+            description = description,
+        )
+        author_video.tags.set(tags)
+        return author_video

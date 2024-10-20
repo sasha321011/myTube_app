@@ -10,7 +10,7 @@ class Video(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     length_time = models.PositiveIntegerField(blank=True)
-    pre_view = models.ImageField(blank=True)
+    pre_view = models.ImageField(blank=True,null=True)
 
     # the_video = video
     tags = models.ManyToManyField(
@@ -42,13 +42,20 @@ class Comment(models.Model):
 
     text = models.TextField(max_length=300)
     parent = models.ForeignKey(
-        "self", null=True, blank=True, related_name="children", on_delete=models.SET_NULL,default=None
+        "self",
+        null=True,
+        blank=True,
+        related_name="children",
+        on_delete=models.SET_NULL,
+        default=None,
     )
 
 
 class UserVideoRelation(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    vid = models.ForeignKey(Video, on_delete=models.CASCADE,related_name="user_video_relations")
+    vid = models.ForeignKey(
+        Video, on_delete=models.CASCADE, related_name="user_video_relations"
+    )
 
     LIKE = 1
     DISLIKE = -1
