@@ -1,5 +1,18 @@
 from rest_framework import serializers
-from service.models import Video, Comment, UserVideoRelation, TagPost
+from service.models import Video, Comment, UserVideoRelation, TagPost, UserVideoRelation
+import uuid
+
+
+
+def slug_create(name):
+    existing_slugs = Video.objects.values_list('slug', flat=True)
+
+
+    while True:
+        new_slug = str(uuid.uuid4())
+
+        if new_slug not in existing_slugs:
+            return new_slug
 
 
 class FilterCommentListSerializer(serializers.ListSerializer):
@@ -55,6 +68,9 @@ class OneVideoSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True, source="vid_com")
     tags_name = TagsSerializer(many=True, read_only=True, source="tags")
 
+    likes = serializers.IntegerField(read_only=True)
+    dislikes = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Video
         fields = (
@@ -66,7 +82,19 @@ class OneVideoSerializer(serializers.ModelSerializer):
             "author",
             "author_name",
             "comments",
+            "likes",
+            "dislikes",
         )
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["likes"] = instance.user_video_relations.filter(
+            vote=UserVideoRelation.LIKE
+        ).count()
+        representation["dislikes"] = instance.user_video_relations.filter(
+            vote=UserVideoRelation.DISLIKE
+        ).count()
+        return representation
 
 
 class RatingCreateSerializer(serializers.ModelSerializer):
@@ -103,16 +131,17 @@ class CommentCreaetSerializer(serializers.ModelSerializer):
             user_comment=user, parent=parent, video_comment=video_comment, text=text
         )
         return com
-    
+
+
 class VideoCreaetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ("name","slug","length_time","pre_view","tags","description")
+        fields = ("name", "length_time", "pre_view", "tags", "description")
 
     def create(self, validated_data):
         author = self.context["request"].user
         name = validated_data["name"]
-        slug = validated_data["slug"]
+        # slug = validated_data["slug"]
         length_time = validated_data["length_time"]
         pre_view = validated_data["pre_view"]
         tags = validated_data.pop("tags", [])
@@ -122,9 +151,9 @@ class VideoCreaetSerializer(serializers.ModelSerializer):
             author=author,
             name=name,
             length_time=length_time,
-            slug=slug,
+            slug=slug_create(name),
             pre_view=pre_view,
-            description = description,
+            description=description,
         )
         author_video.tags.set(tags)
         return author_video

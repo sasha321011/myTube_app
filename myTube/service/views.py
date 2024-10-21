@@ -1,5 +1,6 @@
-from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet, ModelViewSet
 from rest_framework.response import Response
+from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet, ModelViewSet
+
 
 from service.models import Video
 from service.serializers import (
@@ -7,7 +8,8 @@ from service.serializers import (
     OneVideoSerializer,
     RatingCreateSerializer,
     CommentCreaetSerializer,
-    VideoCreaetSerializer
+    VideoCreaetSerializer,
+
 )
 
 

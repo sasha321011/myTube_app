@@ -18,13 +18,6 @@ class Video(models.Model):
     )
     description = models.TextField(blank=True)
 
-    @property
-    def total_likes(self):
-        return self.user_video_relations.filter(vote=UserVideoRelation.LIKE).count()
-
-    @property
-    def total_dislikes(self):
-        return self.user_video_relations.filter(vote=UserVideoRelation.DISLIKE).count()
 
 
 class TagPost(models.Model):
