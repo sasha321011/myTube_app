@@ -34,7 +34,8 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         list_serializer_class = FilterCommentListSerializer
         model = Comment
-        fields = ("id", "author_name", "text", "children")
+        fields = ("id", "author_name", "text", "children","parent")
+
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -66,7 +67,6 @@ class OneVideoSerializer(serializers.ModelSerializer):
     # email = serializers.CharField(source='author.email')
     comments = CommentSerializer(many=True, read_only=True, source="vid_com")
     tags_name = TagsSerializer(many=True, read_only=True, source="tags")
-
     likes = serializers.IntegerField(read_only=True)
     dislikes = serializers.IntegerField(read_only=True)
 

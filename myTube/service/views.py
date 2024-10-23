@@ -16,6 +16,7 @@ from service.serializers import (
     RatingCreateSerializer,
     CommentCreateSerializer,
     VideoCreaetSerializer,
+    CommentSerializer
 )
 
 
@@ -38,7 +39,6 @@ class VideosViewSet(ViewSet):
                 "id", "name", "slug", "created_at", "length_time", "pre_view", "author"
             )
         )
-
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
@@ -51,9 +51,8 @@ class VideosViewSet(ViewSet):
     def retrieve(self, request, slug=None):
         queryset = (
             Video.objects.filter(slug=slug)
-            .prefetch_related("tags", "vid_com", "vid_com__children")
+            .prefetch_related("tags")
             .select_related("author")
-            .only("id", "name", "created_at", "length_time", "author")
             .annotate(
                 likes=Count(
                     "user_video_relations",
@@ -63,10 +62,19 @@ class VideosViewSet(ViewSet):
                     "user_video_relations",
                     filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
                 ),
-            )
+            ).first()
         )
-        serializer = OneVideoSerializer(queryset.first())
-        return Response(serializer.data)
+        response_data = OneVideoSerializer(queryset)
+        # video_serializer = OneVideoSerializer(queryset)
+
+        # comments = queryset.vid_com.all().select_related('user_comment').prefetch_related('children').prefetch_related('children__children')
+        # comments_serializer = CommentSerializer(comments, many=True)
+
+        # response_data = {
+        # "video": video_serializer.data,
+        # "comments": comments_serializer.data,
+        # }
+        return Response(response_data.data)
 
 
 class RatingCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
