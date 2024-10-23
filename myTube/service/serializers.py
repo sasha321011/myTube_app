@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from service.models import Video, Comment, UserVideoRelation, TagPost, UserVideoRelation
 import uuid
-
+from django.db.models import Count, Q
 
 
 def slug_create(name):
-    existing_slugs = Video.objects.values_list('slug', flat=True)
-
+    existing_slugs = Video.objects.values_list("slug", flat=True)
 
     while True:
         new_slug = str(uuid.uuid4())
@@ -35,7 +34,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         list_serializer_class = FilterCommentListSerializer
         model = Comment
-        fields = ("id", "author_name", "children", "text")
+        fields = ("id", "author_name", "text", "children")
 
 
 class TagsSerializer(serializers.ModelSerializer):
@@ -86,15 +85,17 @@ class OneVideoSerializer(serializers.ModelSerializer):
             "dislikes",
         )
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["likes"] = instance.user_video_relations.filter(
-            vote=UserVideoRelation.LIKE
-        ).count()
-        representation["dislikes"] = instance.user_video_relations.filter(
-            vote=UserVideoRelation.DISLIKE
-        ).count()
-        return representation
+    # def to_representation(self, instance):
+    #     instance = Video.objects.annotate(
+    #         likes=Count('user_video_relations', filter=Q(user_video_relations__vote=UserVideoRelation.LIKE)),
+    #         dislikes=Count('user_video_relations', filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE))
+    #     ).get(pk=instance.pk)
+
+    #     representation = super().to_representation(instance)
+    #     representation['likes'] = instance.likes
+    #     representation['dislikes'] = instance.dislikes
+
+    #     return representation
 
 
 class RatingCreateSerializer(serializers.ModelSerializer):
@@ -115,7 +116,7 @@ class RatingCreateSerializer(serializers.ModelSerializer):
         return rate
 
 
-class CommentCreaetSerializer(serializers.ModelSerializer):
+class CommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
