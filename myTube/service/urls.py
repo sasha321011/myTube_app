@@ -5,6 +5,7 @@ from service.views import (
     RatingCreateViewSet,
     CommentCreateViewSet,
     VideoCreateViewSet,
+    AuthorVideosViewSet
 )
 
 
@@ -15,5 +16,6 @@ router.register(r"api/video", VideosViewSet, basename="video")
 router.register(r"api/rate", RatingCreateViewSet, basename="rate")
 router.register(r"api/com", CommentCreateViewSet, basename="comment")
 router.register(r"api/upload-video", VideoCreateViewSet, basename="upload-video")
+router.register(r"api/author-videos", AuthorVideosViewSet, basename="author-videos")
 
 urlpatterns = router.urls

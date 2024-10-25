@@ -89,3 +89,25 @@ class VideoCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+class AuthorVideosViewSet(ViewSet):
+    lookup_field = "author"
+    pagination_class = StandardResultsSetPagination
+    def retrieve(self, request, author=None):
+        queryset = (
+            Video.objects.filter(author=author)
+            .prefetch_related("tags")
+            .select_related("author")
+            .only(
+                "id", "name", "slug", "created_at", "length_time", "pre_view", "author"
+            )
+        )
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = VideosSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        serializer = VideosSerializer(queryset, many=True)
+        return Response(serializer.data)
