@@ -51,7 +51,7 @@ class VideosViewSet(ViewSet):
     def retrieve(self, request, slug=None):
         queryset = (
             Video.objects.filter(slug=slug)
-            .prefetch_related("tags")
+            .prefetch_related("tags", "vid_com__user_comment", "vid_com__children")
             .select_related("author")
             .annotate(
                 likes=Count(
@@ -65,17 +65,7 @@ class VideosViewSet(ViewSet):
             ).first()
         )
         response_data = OneVideoSerializer(queryset)
-        # video_serializer = OneVideoSerializer(queryset)
-
-        # comments = queryset.vid_com.all().select_related('user_comment').prefetch_related('children').prefetch_related('children__children')
-        # comments_serializer = CommentSerializer(comments, many=True)
-
-        # response_data = {
-        # "video": video_serializer.data,
-        # "comments": comments_serializer.data,
-        # }
         return Response(response_data.data)
-
 
 class RatingCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RatingCreateSerializer
