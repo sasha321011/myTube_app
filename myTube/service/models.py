@@ -34,14 +34,7 @@ class Comment(models.Model):
     )
 
     text = models.TextField(max_length=300)
-    parent = models.ForeignKey(
-        "self",
-        null=True,
-        blank=True,
-        related_name="children",
-        on_delete=models.SET_NULL,
-        default=None,
-    )
+    parent = models.ForeignKey('self', related_name='reply', null=True, blank=True, on_delete=models.PROTECT)
 
 
 class UserVideoRelation(models.Model):
