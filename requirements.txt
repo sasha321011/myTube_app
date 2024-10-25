@@ -3,3 +3,4 @@ djangorestframework==3.14.0
 psycopg2==2.8.6
 Pillow
 django-debug-toolbar==4.2
+django-filter

@@ -137,7 +137,7 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         return com
 
 
-class VideoCreaetSerializer(serializers.ModelSerializer):
+class VideoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ("name", "length_time", "pre_view", "tags", "description")

@@ -15,8 +15,8 @@ from service.serializers import (
     OneVideoSerializer,
     RatingCreateSerializer,
     CommentCreateSerializer,
-    VideoCreaetSerializer,
-    CommentSerializer
+    VideoCreateSerializer,
+    CommentSerializer,
 )
 
 
@@ -62,10 +62,12 @@ class VideosViewSet(ViewSet):
                     "user_video_relations",
                     filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
                 ),
-            ).first()
+            )
+            .first()
         )
         response_data = OneVideoSerializer(queryset)
         return Response(response_data.data)
+
 
 class RatingCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RatingCreateSerializer
@@ -84,7 +86,7 @@ class CommentCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 
 class VideoCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
-    serializer_class = VideoCreaetSerializer
+    serializer_class = VideoCreateSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -94,6 +96,7 @@ class VideoCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
 class AuthorVideosViewSet(ViewSet):
     lookup_field = "author"
     pagination_class = StandardResultsSetPagination
+
     def retrieve(self, request, author=None):
         queryset = (
             Video.objects.filter(author=author)
