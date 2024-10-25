@@ -1,3 +1,4 @@
+from cgitb import lookup
 from django.db.models import Count, Q
 from rest_framework.response import Response
 from rest_framework.viewsets import (
@@ -18,7 +19,9 @@ from service.serializers import (
     VideoCreateSerializer,
     CommentSerializer,
 )
-
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+from service.utils import VideosFilter
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 12
@@ -26,27 +29,49 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 12
 
 
-class VideosViewSet(ViewSet):
+class VideosViewSet(ModelViewSet):
+    queryset = (
+        Video.objects.all()
+        .prefetch_related("tags")
+        .select_related("author")
+        .only("id", "name", "slug", "created_at", "length_time", "pre_view", "author")
+    )
+    serializer_class = VideosSerializer
     pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = VideosFilter
+
+
+# class VideosViewSet(ViewSet):
+
+#     pagination_class = StandardResultsSetPagination
+#     filter_backends = [DjangoFilterBackend]
+#     filterset_fields = ["id","slug"]
+
+
+#     def list(self, request):
+
+#         queryset = (
+#             Video.objects.all()
+#             .prefetch_related("tags")
+#             .select_related("author")
+#             .only(
+#                 "id", "name", "slug", "created_at", "length_time", "pre_view", "author"
+#             )
+#         )
+
+#         paginator = self.pagination_class()
+#         page = paginator.paginate_queryset(queryset, request)
+#         if page is not None:
+#             serializer = VideosSerializer(page, many=True)
+#             return paginator.get_paginated_response(serializer.data)
+
+#         serializer = VideosSerializer(queryset, many=True)
+#         return Response(serializer.data)
+
+
+class VideoDetailViewSet(ViewSet):
     lookup_field = "slug"
-
-    def list(self, request):
-        queryset = (
-            Video.objects.all()
-            .prefetch_related("tags")
-            .select_related("author")
-            .only(
-                "id", "name", "slug", "created_at", "length_time", "pre_view", "author"
-            )
-        )
-        paginator = self.pagination_class()
-        page = paginator.paginate_queryset(queryset, request)
-        if page is not None:
-            serializer = VideosSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
-
-        serializer = VideosSerializer(queryset, many=True)
-        return Response(serializer.data)
 
     def retrieve(self, request, slug=None):
         queryset = (
@@ -65,8 +90,8 @@ class VideosViewSet(ViewSet):
             )
             .first()
         )
-        response_data = OneVideoSerializer(queryset)
-        return Response(response_data.data)
+        serializer = OneVideoSerializer(queryset)
+        return Response(serializer.data)
 
 
 class RatingCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
