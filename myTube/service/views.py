@@ -41,7 +41,9 @@ class VideosViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = VideosFilter
 
-
+    def create(self, request, *args, **kwargs):
+        return Response({"detail": "Метод создания не разрешен."})
+        
 # class VideosViewSet(ViewSet):
 
 #     pagination_class = StandardResultsSetPagination
