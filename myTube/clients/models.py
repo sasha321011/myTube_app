@@ -27,7 +27,7 @@ class User(AbstractUser):
 class Subscription(models.Model):
     subscriber = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='subscriptions')
     channel = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='subscribers')
-    subscribed_at = models.DateTimeField(auto_now_add=True)
+    subscribed_at = models.DateTimeField(auto_now_add=True,null=True)
 
     class Meta:
         unique_together = ('subscriber', 'channel')

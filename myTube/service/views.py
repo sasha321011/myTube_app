@@ -30,6 +30,7 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 12
 
 #http://127.0.0.1:8000/api/video/?tags=1&tags=2&author=1
+#дублирующиеся запросы
 class VideosViewSet(ModelViewSet):
     queryset = (
         Video.objects.all()
@@ -48,7 +49,7 @@ class VideosViewSet(ModelViewSet):
     ]
 
     filterset_class = VideosFilter
-    search_fields = ["^name"]
+    search_fields = ["^name","^author"]
     ordering_fields = ["created_at", "length_time"]
 
     def create(self, request, *args, **kwargs):

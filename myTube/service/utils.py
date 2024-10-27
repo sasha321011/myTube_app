@@ -9,7 +9,7 @@ class VideosFilter(filters.FilterSet):
 
     class Meta:
         model = Video
-        fields = ["tags", "author", "tags", "liked_by_user"]
+        fields = ["tags", "tags", "liked_by_user"]
 
     def filter_liked_by_user(self, queryset, name, value):
         user = self.request.user

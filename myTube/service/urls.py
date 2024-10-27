@@ -8,9 +8,11 @@ from service.views import (
     AuthorVideosViewSet,
     VideoDetailViewSet
 )
+urlpatterns = [
+    
+]
 
 
-urlpatterns = []
 
 router = DefaultRouter()
 router.register(r"api/video", VideosViewSet, basename="video")
@@ -20,4 +22,4 @@ router.register(r"api/com", CommentCreateViewSet, basename="comment")
 router.register(r"api/upload-video", VideoCreateViewSet, basename="upload-video")
 router.register(r"api/author-videos", AuthorVideosViewSet, basename="author-videos")
 
-urlpatterns = router.urls
+urlpatterns += router.urls
