@@ -23,53 +23,36 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from service.utils import VideosFilter
 
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 12
     page_size_query_param = "page_size"
     max_page_size = 12
 
-
+#http://127.0.0.1:8000/api/video/?tags=1&tags=2&author=1
 class VideosViewSet(ModelViewSet):
     queryset = (
         Video.objects.all()
         .prefetch_related("tags")
         .select_related("author")
         .only("id", "name", "slug", "created_at", "length_time", "pre_view", "author")
+        .distinct()
     )
     serializer_class = VideosSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend]
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        filters.SearchFilter,
+    ]
+
     filterset_class = VideosFilter
+    search_fields = ["^name"]
+    ordering_fields = ["created_at", "length_time"]
 
     def create(self, request, *args, **kwargs):
         return Response({"detail": "Метод создания не разрешен."})
-        
-# class VideosViewSet(ViewSet):
-
-#     pagination_class = StandardResultsSetPagination
-#     filter_backends = [DjangoFilterBackend]
-#     filterset_fields = ["id","slug"]
-
-
-#     def list(self, request):
-
-#         queryset = (
-#             Video.objects.all()
-#             .prefetch_related("tags")
-#             .select_related("author")
-#             .only(
-#                 "id", "name", "slug", "created_at", "length_time", "pre_view", "author"
-#             )
-#         )
-
-#         paginator = self.pagination_class()
-#         page = paginator.paginate_queryset(queryset, request)
-#         if page is not None:
-#             serializer = VideosSerializer(page, many=True)
-#             return paginator.get_paginated_response(serializer.data)
-
-#         serializer = VideosSerializer(queryset, many=True)
-#         return Response(serializer.data)
 
 
 class VideoDetailViewSet(ViewSet):
