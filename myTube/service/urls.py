@@ -6,12 +6,10 @@ from service.views import (
     CommentCreateViewSet,
     VideoCreateViewSet,
     AuthorVideosViewSet,
-    VideoDetailViewSet
+    VideoDetailViewSet,
 )
-urlpatterns = [
-    
-]
 
+urlpatterns = []
 
 
 router = DefaultRouter()

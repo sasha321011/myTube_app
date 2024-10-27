@@ -29,12 +29,13 @@ class RecursiveSerializer(serializers.Serializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="user_comment.username")
-    #children = RecursiveSerializer(many=True, read_only=True)
-    #children = serializers.SerializerMethodField()
+
+    # children = RecursiveSerializer(many=True, read_only=True)
+    # children = serializers.SerializerMethodField()
     class Meta:
-        #list_serializer_class = FilterCommentListSerializer
+        # list_serializer_class = FilterCommentListSerializer
         model = Comment
-        fields = ("id", "author_name", "text","parent")
+        fields = ("id", "author_name", "text", "parent")
 
     # def get_reply(self, obj):
     #     child_comments = obj.children.all()

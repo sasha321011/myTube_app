@@ -10,14 +10,13 @@ class Video(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     length_time = models.PositiveIntegerField(blank=True)
-    pre_view = models.ImageField(blank=True,null=True)
+    pre_view = models.ImageField(blank=True, null=True)
 
     # the_video = video
     tags = models.ManyToManyField(
         "TagPost", blank=True, related_name="video_tags", verbose_name="Теги"
     )
     description = models.TextField(blank=True)
-
 
 
 class TagPost(models.Model):
@@ -34,7 +33,9 @@ class Comment(models.Model):
     )
 
     text = models.TextField(max_length=300)
-    parent = models.ForeignKey('self', related_name='children', null=True, blank=True, on_delete=models.PROTECT)
+    parent = models.ForeignKey(
+        "self", related_name="children", null=True, blank=True, on_delete=models.PROTECT
+    )
 
 
 class UserVideoRelation(models.Model):

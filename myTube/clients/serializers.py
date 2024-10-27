@@ -2,7 +2,6 @@ from rest_framework import serializers
 from clients.models import Subscription
 
 
-
 class SubscribeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
@@ -12,8 +11,7 @@ class SubscribeCreateSerializer(serializers.ModelSerializer):
         subscriber = self.context["request"].user
         channel = validated_data["channel"]
 
-
-        if subscriber !=channel:
+        if subscriber != channel:
             sub, created = Subscription.objects.get_or_create(
                 subscriber=subscriber,
                 channel=channel,
