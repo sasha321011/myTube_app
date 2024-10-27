@@ -50,7 +50,7 @@ class VideosViewSet(ModelViewSet):
     ]
 
     filterset_class = VideosFilter
-    search_fields = ["^name", "^author"]
+    search_fields = ["^name", "^author__username"]
     ordering_fields = ["created_at", "length_time"]
 
     def create(self, request, *args, **kwargs):
