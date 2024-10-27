@@ -18,5 +18,5 @@ class SubscribeCreateSerializer(serializers.ModelSerializer):
                 subscriber=subscriber,
                 channel=channel,
             )
-
             return sub
+        raise serializers.ValidationError("You cannot subscribe to yourself.")

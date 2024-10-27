@@ -6,7 +6,7 @@ urlpatterns = [
 ]
 
 router = DefaultRouter()
-router.register(r"api/make-sub", SubscribeCreate, basename="make_sub")
+router.register(r"make-sub", SubscribeCreate, basename="make_sub")
 
 
 urlpatterns += router.urls

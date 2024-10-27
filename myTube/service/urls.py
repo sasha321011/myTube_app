@@ -15,11 +15,11 @@ urlpatterns = [
 
 
 router = DefaultRouter()
-router.register(r"api/video", VideosViewSet, basename="video")
-router.register(r"api/video-detail", VideoDetailViewSet, basename="video-detail")
-router.register(r"api/rate", RatingCreateViewSet, basename="rate")
-router.register(r"api/com", CommentCreateViewSet, basename="comment")
-router.register(r"api/upload-video", VideoCreateViewSet, basename="upload-video")
-router.register(r"api/author-videos", AuthorVideosViewSet, basename="author-videos")
+router.register(r"video", VideosViewSet, basename="video")
+router.register(r"video-detail", VideoDetailViewSet, basename="video-detail")
+router.register(r"rate", RatingCreateViewSet, basename="rate")
+router.register(r"com", CommentCreateViewSet, basename="comment")
+router.register(r"upload-video", VideoCreateViewSet, basename="upload-video")
+router.register(r"author-videos", AuthorVideosViewSet, basename="author-videos")
 
 urlpatterns += router.urls
