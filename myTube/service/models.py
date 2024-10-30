@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-
+from mptt.models import MPTTModel, TreeForeignKey
 
 class Video(models.Model):
     name = models.CharField(max_length=50)
@@ -24,7 +24,7 @@ class TagPost(models.Model):
     tag_slug = models.SlugField(unique=True)
 
 
-class Comment(models.Model):
+class Comment(MPTTModel,models.Model):
     video_comment = models.ForeignKey(
         Video, related_name="vid_com", on_delete=models.CASCADE
     )

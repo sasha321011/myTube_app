@@ -30,17 +30,27 @@ class RecursiveSerializer(serializers.Serializer):
 class CommentSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="user_comment.username")
 
-    # children = RecursiveSerializer(many=True, read_only=True)
-    # children = serializers.SerializerMethodField()
+    #children = RecursiveSerializer(many=True)
+    #children = serializers.SerializerMethodField()
     class Meta:
-        # list_serializer_class = FilterCommentListSerializer
+        #list_serializer_class = FilterCommentListSerializer
         model = Comment
         fields = ("id", "author_name", "text", "parent")
 
-    # def get_reply(self, obj):
-    #     child_comments = obj.children.all()
-    #     return CommentSerializer(child_comments, many=True, context=self.context).data
-
+    # def get_children(self, obj):
+    #     # Дочерние комментарии загружаются с помощью prefetch_related
+    #     children_comments = obj.children.all()
+    #     # Используем множество для хранения уникальных идентификаторов
+    #     unique_ids = set()
+    #     filtered_children = []
+        
+    #     for child in children_comments:
+    #         if child.id not in unique_ids:
+    #             unique_ids.add(child.id)
+    #             filtered_children.append(child)
+        
+    #     return CommentSerializer(filtered_children, many=True).data 
+    
 
 class TagsSerializer(serializers.ModelSerializer):
     class Meta:
