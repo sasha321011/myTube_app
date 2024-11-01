@@ -13,19 +13,41 @@ from clients.models import Subscription
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import status
 
 
-class SubscribeCreate(mixins.CreateModelMixin, GenericViewSet):
+class SubscribeCreate(mixins.CreateModelMixin,
+                       mixins.DestroyModelMixin,
+                       GenericViewSet):
     serializer_class = SubscribeCreateSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Subscription.objects.none()
+        return Subscription.objects.filter(subscriber=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(subscriber=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        channel_id = self.request.data.get("channel_id")
+        if not channel_id:
+            return Response(
+                {"detail": "Необходимо указать ID канала для отписки."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            subscription = Subscription.objects.get(
+                subscriber=request.user, channel_id=channel_id
+            )
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Subscription.DoesNotExist:
+            return Response(
+                {"detail": "Подписка не найдена."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 class ProfileViewSet(ViewSet):
@@ -41,7 +63,7 @@ class Currentuser(ViewSet):
     lookup_field = "username"
 
     def retrieve(self, request, username=None):
-        queryset = get_object_or_404(User, username=username)
+        queryset = get_object_or_404(get_user_model(), username=username)
 
         serializer = PublicAuthorProfileSerializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)

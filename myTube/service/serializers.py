@@ -1,4 +1,4 @@
-from rest_framework import serializers
+Userfrom rest_framework import serializers
 from service.models import Video, Comment, UserVideoRelation, TagPost, UserVideoRelation
 import uuid
 from django.db.models import Count, Q
@@ -61,12 +61,12 @@ class TagsSerializer(serializers.ModelSerializer):
 class VideosSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="author.username")
     tags_name = TagsSerializer(many=True, read_only=True, source="tags")
-
+    url = serializers.SerializerMethodField()
     class Meta:
         model = Video
         fields = (
             "name",
-            "slug",
+            "url",
             "created_at",
             "length_time",
             "pre_view",
@@ -75,6 +75,8 @@ class VideosSerializer(serializers.ModelSerializer):
             "tags_name",
         )
 
+    def get_url(self, obj):
+        return obj.get_absolute_url()
 
 class OneVideoSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="author.username")

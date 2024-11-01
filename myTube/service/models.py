@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from mptt.models import MPTTModel, TreeForeignKey
+from mptt.models import MPTTModel
+from django.urls import reverse
 
 class Video(models.Model):
     name = models.CharField(max_length=50)
@@ -18,6 +19,8 @@ class Video(models.Model):
     )
     description = models.TextField(blank=True)
 
+    def get_absolute_url(self):
+        return reverse("video-detail", kwargs={"slug": self.slug})
 
 class TagPost(models.Model):
     tag_name = models.CharField(max_length=50)
