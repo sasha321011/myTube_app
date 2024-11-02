@@ -10,16 +10,16 @@ from clients.serializers import (
     UserProfileSerializer,
 )
 from clients.models import Subscription
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, ReadOnlyModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
 
-class SubscribeCreate(mixins.CreateModelMixin,
-                       mixins.DestroyModelMixin,
-                       GenericViewSet):
+class SubscribeCreateDestroy(
+    mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet
+):
     serializer_class = SubscribeCreateSerializer
     permission_classes = [IsAuthenticated]
 
@@ -59,24 +59,26 @@ class ProfileViewSet(ViewSet):
         return Response(serializer.data)
 
 
-class Currentuser(ViewSet):
+class SelectedUserViewSet(ReadOnlyModelViewSet):
     lookup_field = "username"
+    serializer_class = PublicAuthorProfileSerializer
+
+    def get_queryset(self):
+        return get_user_model().objects.all()
+
+    def list(self, request, *args, **kwargs):
+        return Response(None)
 
     def retrieve(self, request, username=None):
         queryset = get_object_or_404(get_user_model(), username=username)
-
-        serializer = PublicAuthorProfileSerializer(queryset)
+        serializer = self.get_serializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SubsUser(ViewSet):
+class SubsUserViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
+    serializer_class = PublicAuthorProfileSerializer
 
-    def list(self, request):
-        user = request.user
-        subscriptions = Subscription.objects.filter(subscriber=user).select_related(
-            "channel"
-        )
-        authors = [subscription.channel for subscription in subscriptions]
-        serializer = PublicAuthorProfileSerializer(authors, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        user = self.request.user
+        return get_user_model().objects.filter(channels__subscriber=user)

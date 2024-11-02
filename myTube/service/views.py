@@ -15,6 +15,7 @@ from service.serializers import (
     RatingCreateSerializer,
     CommentCreateSerializer,
     VideoCreateSerializer,
+    CommentSerializer
 )
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -55,7 +56,9 @@ class VideoDetailViewSet(ReadOnlyModelViewSet):
         "tags", "vid_com__user_comment", "vid_com__children"
     )
 
+
     def get_queryset(self):
+
         return self.queryset.annotate(
             likes=Count(
                 "user_video_relations",
@@ -155,3 +158,5 @@ class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
 
 #         serializer = VideosSerializer(queryset, many=True)
 #         return Response(serializer.data)
+
+

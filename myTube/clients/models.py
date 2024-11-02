@@ -24,10 +24,10 @@ class User(AbstractUser):
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, related_name="subscriptions"
+        get_user_model(), on_delete=models.CASCADE, related_name="subscribers"
     )
     channel = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, related_name="subscribers"
+        get_user_model(), on_delete=models.CASCADE, related_name="channels"
     )
     subscribed_at = models.DateTimeField(auto_now_add=True, null=True)
 

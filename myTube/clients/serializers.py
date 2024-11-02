@@ -19,13 +19,14 @@ class SubscribeCreateSerializer(serializers.ModelSerializer):
             return sub
         raise serializers.ValidationError("You cannot subscribe to yourself.")
 
+
 class PublicAuthorProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("username","email")
+        fields = ("username", "email")
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-
+        fields = ["id", "username", "email", "first_name", "last_name"]
