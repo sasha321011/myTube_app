@@ -15,7 +15,7 @@ from service.serializers import (
     RatingCreateSerializer,
     CommentCreateSerializer,
     VideoCreateSerializer,
-    CommentSerializer
+    CommentSerializer,
 )
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,7 +28,7 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 12
 
 
-class VideosViewSet(ReadOnlyModelViewSet):
+class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = (
         Video.objects.all()
         .prefetch_related("tags")
@@ -37,8 +37,10 @@ class VideosViewSet(ReadOnlyModelViewSet):
         .distinct()
     )
     serializer_class = VideosSerializer
+    permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
+    # Настройки фильтрации, сортировки и поиска
     filter_backends = [
         DjangoFilterBackend,
         filters.OrderingFilter,
@@ -49,16 +51,36 @@ class VideosViewSet(ReadOnlyModelViewSet):
     ordering_fields = ["created_at", "length_time"]
 
 
-class VideoDetailViewSet(ReadOnlyModelViewSet):
+# class VideosViewSet(ReadOnlyModelViewSet):
+#     queryset = (
+#         Video.objects.all()
+#         .prefetch_related("tags")
+#         .select_related("author")
+#         .only("id", "name", "slug", "created_at", "length_time", "pre_view", "author")
+#         .distinct()
+#     )
+#     serializer_class = VideosSerializer
+#     pagination_class = StandardResultsSetPagination
+
+#     filter_backends = [
+#         DjangoFilterBackend,
+#         filters.OrderingFilter,
+#         filters.SearchFilter,
+#     ]
+#     filterset_class = VideosFilter
+#     search_fields = ["^name", "^author__username"]
+#     ordering_fields = ["created_at", "length_time"]
+
+
+class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     lookup_field = "slug"
     serializer_class = OneVideoSerializer
+    permission_classes = [IsAuthenticated]
     queryset = Video.objects.select_related("author").prefetch_related(
         "tags", "vid_com__user_comment", "vid_com__children"
     )
 
-
     def get_queryset(self):
-
         return self.queryset.annotate(
             likes=Count(
                 "user_video_relations",
@@ -69,6 +91,28 @@ class VideoDetailViewSet(ReadOnlyModelViewSet):
                 filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
             ),
         )
+
+
+# class VideoDetailViewSet(ReadOnlyModelViewSet):
+#     lookup_field = "slug"
+#     serializer_class = OneVideoSerializer
+#     queryset = Video.objects.select_related("author").prefetch_related(
+#         "tags", "vid_com__user_comment", "vid_com__children"
+#     )
+
+
+#     def get_queryset(self):
+
+#         return self.queryset.annotate(
+#             likes=Count(
+#                 "user_video_relations",
+#                 filter=Q(user_video_relations__vote=UserVideoRelation.LIKE),
+#             ),
+#             dislikes=Count(
+#                 "user_video_relations",
+#                 filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
+#             ),
+#         )
 
 
 # class VideoDetailViewSet(ReadOnlyModelViewSet):
@@ -158,5 +202,3 @@ class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
 
 #         serializer = VideosSerializer(queryset, many=True)
 #         return Response(serializer.data)
-
-

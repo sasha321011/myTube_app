@@ -1,7 +1,7 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, re_path
 from service.views import (
-    VideosViewSet,
+    VideosListViewSet,
     RatingCreateViewSet,
     CommentCreateViewSet,
     VideoCreateViewSet,
@@ -10,13 +10,12 @@ from service.views import (
 )
 
 router = DefaultRouter()
-router.register(r"video", VideosViewSet, basename="video")
+router.register(r"video", VideosListViewSet, basename="video")
 router.register(r"rate", RatingCreateViewSet, basename="rate")
 router.register(r"com", CommentCreateViewSet, basename="comment")
 router.register(r"upload-video", VideoCreateViewSet, basename="upload-video")
 # router.register(r"author-videos", AuthorVideosViewSet, basename="author-videos")
 
-# Укажите маршрут для видео по `slug`
 urlpatterns = [
     path(
         "video-detail/<slug:slug>/",

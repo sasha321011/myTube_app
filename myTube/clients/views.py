@@ -10,7 +10,7 @@ from clients.serializers import (
     UserProfileSerializer,
 )
 from clients.models import Subscription
-from rest_framework.viewsets import ViewSet, ReadOnlyModelViewSet
+from rest_framework.viewsets import ViewSet, ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
@@ -50,13 +50,16 @@ class SubscribeCreateDestroy(
             )
 
 
-class ProfileViewSet(ViewSet):
+class ProfileViewSet(ModelViewSet):
+    queryset = get_user_model().objects.all()
+    serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    def list(self, request):
-        user = request.user
-        serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return get_user_model().objects.filter(id=self.request.user.id)
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
 class SelectedUserViewSet(ReadOnlyModelViewSet):
@@ -82,3 +85,5 @@ class SubsUserViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return get_user_model().objects.filter(channels__subscriber=user)
+
+
