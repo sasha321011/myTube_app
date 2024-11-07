@@ -5,8 +5,14 @@ from clients.views import (
     SelectedUserViewSet,
     SubsUserViewSet,
 )
+from django.urls import path, include
 
-urlpatterns = []
+
+urlpatterns = [
+    path('auth/', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
+    path('auth/', include('djoser.urls.jwt')),
+]
 
 router = DefaultRouter()
 router.register(r"make-sub", SubscribeCreateDestroy, basename="make_sub")

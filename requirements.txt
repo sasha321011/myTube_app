@@ -5,3 +5,5 @@ Pillow
 django-debug-toolbar==4.2
 django-filter
 django-mptt
+djoser
+djangorestframework_simplejwt
