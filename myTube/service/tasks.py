@@ -17,7 +17,7 @@ def send_messages_for_subs(video_id):
         subscriber = subscription.subscriber
         send_mail(
             subject=f"Новое видео от {author.username}",
-            message=f"{author.username} загрузил новое видео: {video.name}. Смотрите его по ссылке: {video.get_absolute_url()}",
+            message=f"{author.username} загрузил новое видео: {video.name}.",
             from_email="noreply@yourdomain.com",
             recipient_list=[subscriber.email],
         )
