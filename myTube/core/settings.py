@@ -29,8 +29,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "clients",
-    "service",
+    "clients.apps.ClientsConfig",
+    "service.apps.ServiceConfig",
     "debug_toolbar",
     "django_filters",
     "rest_framework",
@@ -186,8 +186,4 @@ SIMPLE_JWT = {
 }
 
 
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587  # или 465 для SSL
-EMAIL_USE_TLS = True  # или EMAIL_USE_SSL = True для SSL
-EMAIL_HOST_USER = 'starsagd13@gmail.com'
+CELERY_BROKER_URL = 'redis://redis:6379/0'

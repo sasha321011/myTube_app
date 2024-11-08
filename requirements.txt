@@ -7,3 +7,5 @@ django-filter
 django-mptt
 djoser
 djangorestframework_simplejwt
+celery[redis]==5.2.7
+flower==1.2.0
