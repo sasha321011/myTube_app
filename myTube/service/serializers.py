@@ -103,17 +103,6 @@ class OneVideoSerializer(serializers.ModelSerializer):
             "dislikes",
         )
 
-    # def to_representation(self, instance):
-    #     instance = Video.objects.annotate(
-    #         likes=Count('user_video_relations', filter=Q(user_video_relations__vote=UserVideoRelation.LIKE)),
-    #         dislikes=Count('user_video_relations', filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE))
-    #     ).get(pk=instance.pk)
-
-    #     representation = super().to_representation(instance)
-    #     representation['likes'] = instance.likes
-    #     representation['dislikes'] = instance.dislikes
-
-    #     return representation
 
 
 class RatingCreateSerializer(serializers.ModelSerializer):

@@ -15,6 +15,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from rest_framework import status
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 
 class SubscribeCreateDestroy(
@@ -61,6 +64,10 @@ class ProfileViewSet(ModelViewSet):
     def perform_destroy(self, instance):
         instance.delete()
 
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class SelectedUserViewSet(ReadOnlyModelViewSet):
     lookup_field = "username"
@@ -76,6 +83,10 @@ class SelectedUserViewSet(ReadOnlyModelViewSet):
         queryset = get_object_or_404(get_user_model(), username=username)
         serializer = self.get_serializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class SubsUserViewSet(ReadOnlyModelViewSet):
@@ -85,5 +96,9 @@ class SubsUserViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return get_user_model().objects.filter(channels__subscriber=user)
+    
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 

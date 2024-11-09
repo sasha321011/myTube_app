@@ -1,11 +1,13 @@
-Django==4.2
+Django==4.1
 djangorestframework==3.14.0
 psycopg2==2.8.6
 Pillow
-django-debug-toolbar==4.2
+django-debug-toolbar==4.2.0
 django-filter
 django-mptt
 djoser
 djangorestframework_simplejwt
-celery[redis]==5.2.7
+celery[redis]==5.3.0
 flower==1.2.0
+django-redis==5.2.0
+django-cachalot==2.5.2

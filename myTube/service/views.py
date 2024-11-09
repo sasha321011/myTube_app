@@ -17,9 +17,13 @@ from service.serializers import (
     VideoCreateSerializer,
     CommentSerializer,
 )
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from service.utils import VideosFilter
+from django.core.cache import cache
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -29,6 +33,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
+
     queryset = (
         Video.objects.all()
         .prefetch_related("tags")
@@ -37,10 +42,8 @@ class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
         .distinct()
     )
     serializer_class = VideosSerializer
-    permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
 
-    # Настройки фильтрации, сортировки и поиска
     filter_backends = [
         DjangoFilterBackend,
         filters.OrderingFilter,
@@ -49,6 +52,10 @@ class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
     filterset_class = VideosFilter
     search_fields = ["^name", "^author__username"]
     ordering_fields = ["created_at", "length_time"]
+
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 # class VideosViewSet(ReadOnlyModelViewSet):
@@ -72,16 +79,27 @@ class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
 #     ordering_fields = ["created_at", "length_time"]
 
 
+from django.core.cache import cache
+from django.conf import settings
+
+
 class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     lookup_field = "slug"
     serializer_class = OneVideoSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = Video.objects.select_related("author").prefetch_related(
-        "tags", "vid_com__user_comment", "vid_com__children"
+    queryset = (
+        Video.objects.select_related("author")
+        .prefetch_related("tags", "vid_com__user_comment", "vid_com__children")
+        .only(
+            "id",
+            "name",
+            "created_at",
+            "length_time",
+            "author",
+        )
     )
 
     def get_queryset(self):
-        return self.queryset.annotate(
+        total_votes_vid = self.queryset.annotate(
             likes=Count(
                 "user_video_relations",
                 filter=Q(user_video_relations__vote=UserVideoRelation.LIKE),
@@ -91,6 +109,25 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
                 filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
             ),
         )
+        return total_votes_vid
+
+    def retrieve(self, request, *args, **kwargs):
+        video_slug = self.kwargs.get(self.lookup_field)
+        cache_key = f"video_details:{video_slug}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            return Response(cached_data)
+        response = super().retrieve(request, *args, **kwargs)
+        cached_data = {
+            "id": response.data["id"],
+            "name": response.data["name"],
+            "created_at": response.data["created_at"],
+            "length_time": response.data["length_time"],
+            "author": response.data["author"],
+        }
+        cache.set(cache_key, response.data, timeout=settings.CACHE_TTL)
+
+        return response
 
 
 # class VideoDetailViewSet(ReadOnlyModelViewSet):
@@ -157,7 +194,7 @@ class CommentCreateViewSet(
 ):
     serializer_class = CommentCreateSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Comment.objects.all()  # Задайте queryset для комментариев
+    queryset = Comment.objects.all()
 
 
 class VideoCreateViewSet(
@@ -179,6 +216,10 @@ class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self):
         author = self.kwargs.get("author")
         return super().get_queryset().filter(author__username=author)
+
+    @method_decorator(cache_page(settings.CACHE_TTL))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 # class AuthorVideosViewSet(ViewSet):
