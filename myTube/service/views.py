@@ -24,7 +24,7 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from service.utils import VideosFilter
 from django.core.cache import cache
-
+from service.models import delete_old_file
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 12
@@ -33,7 +33,6 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 
 class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
-
     queryset = (
         Video.objects.all()
         .prefetch_related("tags")
@@ -58,31 +57,6 @@ class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
         return super().list(request, *args, **kwargs)
 
 
-# class VideosViewSet(ReadOnlyModelViewSet):
-#     queryset = (
-#         Video.objects.all()
-#         .prefetch_related("tags")
-#         .select_related("author")
-#         .only("id", "name", "slug", "created_at", "length_time", "pre_view", "author")
-#         .distinct()
-#     )
-#     serializer_class = VideosSerializer
-#     pagination_class = StandardResultsSetPagination
-
-#     filter_backends = [
-#         DjangoFilterBackend,
-#         filters.OrderingFilter,
-#         filters.SearchFilter,
-#     ]
-#     filterset_class = VideosFilter
-#     search_fields = ["^name", "^author__username"]
-#     ordering_fields = ["created_at", "length_time"]
-
-
-from django.core.cache import cache
-from django.conf import settings
-
-
 class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     lookup_field = "slug"
     serializer_class = OneVideoSerializer
@@ -91,6 +65,7 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
         .prefetch_related("tags", "vid_com__user_comment", "vid_com__children")
         .only(
             "id",
+            "the_video",
             "name",
             "created_at",
             "length_time",
@@ -120,6 +95,7 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
         response = super().retrieve(request, *args, **kwargs)
         cached_data = {
             "id": response.data["id"],
+            "the_video":response.data['the_video'],
             "name": response.data["name"],
             "created_at": response.data["created_at"],
             "length_time": response.data["length_time"],
@@ -128,51 +104,6 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
         cache.set(cache_key, response.data, timeout=settings.CACHE_TTL)
 
         return response
-
-
-# class VideoDetailViewSet(ReadOnlyModelViewSet):
-#     lookup_field = "slug"
-#     serializer_class = OneVideoSerializer
-#     queryset = Video.objects.select_related("author").prefetch_related(
-#         "tags", "vid_com__user_comment", "vid_com__children"
-#     )
-
-
-#     def get_queryset(self):
-
-#         return self.queryset.annotate(
-#             likes=Count(
-#                 "user_video_relations",
-#                 filter=Q(user_video_relations__vote=UserVideoRelation.LIKE),
-#             ),
-#             dislikes=Count(
-#                 "user_video_relations",
-#                 filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
-#             ),
-#         )
-
-
-# class VideoDetailViewSet(ReadOnlyModelViewSet):
-#     lookup_field = "slug"
-#     serializer_class = OneVideoSerializer
-
-#     def get_queryset(self):
-#         return (
-#             Video.objects.prefetch_related(
-#                 "tags", "vid_com__user_comment", "vid_com__children"
-#             )
-#             .select_related("author")
-#             .annotate(
-#                 likes=Count(
-#                     "user_video_relations",
-#                     filter=Q(user_video_relations__vote=UserVideoRelation.LIKE),
-#                 ),
-#                 dislikes=Count(
-#                     "user_video_relations",
-#                     filter=Q(user_video_relations__vote=UserVideoRelation.DISLIKE),
-#                 ),
-#             )
-#         )
 
 
 class RatingCreateViewSet(
@@ -207,6 +138,9 @@ class VideoCreateViewSet(
     permission_classes = [IsAuthenticated]
     queryset = Video.objects.all()
 
+    def perform_destroy(self, instance):
+        delete_old_file(instance.the_video.path)
+        super().perform_destroy(instance)
 
 class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = Video.objects.prefetch_related("tags").select_related("author")
@@ -220,26 +154,3 @@ class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
     @method_decorator(cache_page(settings.CACHE_TTL))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-
-
-# class AuthorVideosViewSet(ViewSet):
-#     lookup_field = "author"
-#     pagination_class = StandardResultsSetPagination
-
-#     def retrieve(self, request, author=None):
-#         queryset = (
-#             Video.objects.filter(author__username=author)
-#             .prefetch_related("tags")
-#             .select_related("author")
-#             .only(
-#                 "id", "name", "slug", "created_at", "length_time", "pre_view", "author"
-#             )
-#         )
-#         paginator = self.pagination_class()
-#         page = paginator.paginate_queryset(queryset, request)
-#         if page is not None:
-#             serializer = VideosSerializer(page, many=True)
-#             return paginator.get_paginated_response(serializer.data)
-
-#         serializer = VideosSerializer(queryset, many=True)
-#         return Response(serializer.data)

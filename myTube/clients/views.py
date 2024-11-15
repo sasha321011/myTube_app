@@ -53,20 +53,22 @@ class SubscribeCreateDestroy(
             )
 
 
-class ProfileViewSet(ModelViewSet):
+class ProfileViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     queryset = get_user_model().objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        return get_user_model().objects.filter(id=self.request.user.id)
-
-    def perform_destroy(self, instance):
-        instance.delete()
+    def get_object(self):
+        return self.request.user
 
     @method_decorator(cache_page(settings.CACHE_TTL))
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
 
 
 class SelectedUserViewSet(ReadOnlyModelViewSet):
@@ -83,7 +85,7 @@ class SelectedUserViewSet(ReadOnlyModelViewSet):
         queryset = get_object_or_404(get_user_model(), username=username)
         serializer = self.get_serializer(queryset)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     @method_decorator(cache_page(settings.CACHE_TTL))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -96,9 +98,7 @@ class SubsUserViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return get_user_model().objects.filter(channels__subscriber=user)
-    
+
     @method_decorator(cache_page(settings.CACHE_TTL))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-
-

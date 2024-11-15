@@ -2,6 +2,15 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from mptt.models import MPTTModel
 from django.urls import reverse
+from django.core.validators import FileExtensionValidator
+import os
+
+def delete_old_file(path_file):
+    if os.path.exists(path_file):
+        os.remove(path_file)
+
+def get_path_upload_video(instance,file):
+    return f'videos/{file}'
 
 class Video(models.Model):
     name = models.CharField(max_length=50)
@@ -13,21 +22,31 @@ class Video(models.Model):
     length_time = models.PositiveIntegerField(blank=True)
     pre_view = models.ImageField(blank=True, null=True)
 
-    # the_video = video
+    the_video = models.FileField(
+        upload_to=get_path_upload_video,
+        validators=[FileExtensionValidator(allowed_extensions=["mp4","avi"])],
+        blank=True,
+    )
     tags = models.ManyToManyField(
         "TagPost", blank=True, related_name="video_tags", verbose_name="Теги"
     )
     description = models.TextField(blank=True)
 
+    def delete(self, *args, **kwargs):
+        if self.the_video:
+            delete_old_file(self.the_video.path)
+        super().delete(*args, **kwargs)
+
     def get_absolute_url(self):
         return reverse("video-detail", kwargs={"slug": self.slug})
+
 
 class TagPost(models.Model):
     tag_name = models.CharField(max_length=50)
     tag_slug = models.SlugField(unique=True)
 
 
-class Comment(MPTTModel,models.Model):
+class Comment(MPTTModel, models.Model):
     video_comment = models.ForeignKey(
         Video, related_name="vid_com", on_delete=models.CASCADE
     )

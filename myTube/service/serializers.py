@@ -93,6 +93,7 @@ class OneVideoSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "the_video",
             "created_at",
             "tags_name",
             "length_time",
@@ -144,7 +145,7 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 class VideoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ("name", "length_time", "pre_view", "tags", "description")
+        fields = ("name","the_video", "length_time", "pre_view", "tags", "description")
 
     def create(self, validated_data):
         author = self.context["request"].user
@@ -154,7 +155,7 @@ class VideoCreateSerializer(serializers.ModelSerializer):
         pre_view = validated_data["pre_view"]
         tags = validated_data.pop("tags", [])
         description = validated_data["description"]
-
+        the_video = validated_data["the_video"]
         author_video, created = Video.objects.update_or_create(
             author=author,
             name=name,
@@ -162,6 +163,7 @@ class VideoCreateSerializer(serializers.ModelSerializer):
             slug=slug_create(name),
             pre_view=pre_view,
             description=description,
+            the_video=the_video,
         )
         author_video.tags.set(tags)
         return author_video
