@@ -7,4 +7,3 @@ class ServiceConfig(AppConfig):
     
     def ready(self):
         import service.signals
-

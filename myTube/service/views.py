@@ -25,11 +25,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from service.utils import VideosFilter
 from django.core.cache import cache
 from service.models import delete_old_file
+from django.dispatch import receiver
+from django.db.models.signals import post_delete
+
+@receiver(post_delete, sender=Video)
+def clear_cache_on_delete(sender, instance, **kwargs):
+    cache_key = f"video_details:{instance.slug}"
+    cache.delete(cache_key)
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 12
     page_size_query_param = "page_size"
     max_page_size = 12
+
 
 
 class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -139,6 +147,8 @@ class VideoCreateViewSet(
     queryset = Video.objects.all()
 
     def perform_destroy(self, instance):
+        cache_key = f"video_details:{instance.slug}"
+        cache.delete(cache_key)
         delete_old_file(instance.the_video.path)
         super().perform_destroy(instance)
 
