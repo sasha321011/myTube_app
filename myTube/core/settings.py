@@ -204,5 +204,4 @@ CACHES = {
     }
 }
 
-CACHE_TTL = 300
-
+CACHE_TTL = 3

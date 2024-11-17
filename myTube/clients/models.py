@@ -1,6 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+import os
+from django.core.validators import FileExtensionValidator
+
+
 
 
 class User(AbstractUser):
@@ -14,13 +18,10 @@ class User(AbstractUser):
         verbose_name="user permissions",
     )
 
-    photo = models.ImageField(
-        upload_to="users/%Y/%m/%d/", blank=True, null=True, verbose_name="Фотография"
+    date_birth = models.DateTimeField(blank=True,
+        verbose_name="Дата рождения"
     )
-    date_birth = models.DateTimeField(
-        blank=True, null=True, verbose_name="Дата рождения"
-    )
-
+    
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(

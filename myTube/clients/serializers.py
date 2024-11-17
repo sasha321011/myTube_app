@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from clients.models import Subscription, User
+from clients.models import Subscription, get_user_model
 
 
 class SubscribeCreateSerializer(serializers.ModelSerializer):
@@ -22,11 +22,11 @@ class SubscribeCreateSerializer(serializers.ModelSerializer):
 
 class PublicAuthorProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ("username", "email")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ["id", "username", "email", "first_name", "last_name"]
+        model = get_user_model()
+        fields = ["id", "username", "email", "date_birth", "first_name"]

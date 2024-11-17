@@ -5,12 +5,15 @@ from django.urls import reverse
 from django.core.validators import FileExtensionValidator
 import os
 
+
 def delete_old_file(path_file):
     if os.path.exists(path_file):
         os.remove(path_file)
 
-def get_path_upload_video(instance,file):
-    return f'videos/{file}'
+
+def get_path_upload_video(instance, file):
+    return f"videos/{file}"
+
 
 class Video(models.Model):
     name = models.CharField(max_length=50)
@@ -24,7 +27,7 @@ class Video(models.Model):
 
     the_video = models.FileField(
         upload_to=get_path_upload_video,
-        validators=[FileExtensionValidator(allowed_extensions=["mp4","avi"])],
+        validators=[FileExtensionValidator(allowed_extensions=["mp4", "avi"])],
         blank=True,
     )
     tags = models.ManyToManyField(
