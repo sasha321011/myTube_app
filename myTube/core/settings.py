@@ -163,7 +163,7 @@ DJOSER = {
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
-    'SERIALIZERS': {},
+    'SERIALIZERS': {'user_create': 'clients.serializers.CustomUserCreateSerializer',},
 }
 
 
@@ -205,3 +205,4 @@ CACHES = {
 }
 
 CACHE_TTL = 3
+AUTH_USER_MODEL = 'clients.User'

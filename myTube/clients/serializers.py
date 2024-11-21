@@ -1,6 +1,18 @@
 from rest_framework import serializers
 from clients.models import Subscription, get_user_model
+from djoser.serializers import UserCreateSerializer
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
+class CustomUserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'username', 'email', 'password', 'date_birth', 'photo')
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = get_user_model().objects.create_user(**validated_data)
+        return user
 
 class SubscribeCreateSerializer(serializers.ModelSerializer):
     class Meta:
