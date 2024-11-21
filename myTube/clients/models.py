@@ -6,8 +6,6 @@ from django.core.validators import FileExtensionValidator
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-
-
 class User(AbstractUser):
     photo = models.ImageField(
         upload_to="user_photos/",
