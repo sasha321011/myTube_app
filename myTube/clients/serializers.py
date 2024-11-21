@@ -14,6 +14,8 @@ class CustomUserCreateSerializer(serializers.ModelSerializer):
         user = get_user_model().objects.create_user(**validated_data)
         return user
 
+
+
 class SubscribeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
