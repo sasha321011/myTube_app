@@ -1,3 +1,4 @@
+from urllib import request
 from django.db.models import Count, Q
 from rest_framework.response import Response
 from rest_framework.viewsets import (
@@ -34,7 +35,7 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 12
 
 
-class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
+class VideosListView(mixins.ListModelMixin, GenericViewSet):
     """Список Video"""
 
     queryset = (
@@ -61,7 +62,7 @@ class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
         return super().list(request, *args, **kwargs)
 
 
-class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+class VideoDetailView(mixins.RetrieveModelMixin, GenericViewSet):
     """Конкретное Video"""
 
     lookup_field = "slug"
@@ -112,7 +113,7 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
         return response
 
 
-class RatingCreateViewSet(
+class RatingCreateView(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,
@@ -124,7 +125,7 @@ class RatingCreateViewSet(
     queryset = UserVideoRelation.objects.all()
 
 
-class CommentCreateViewSet(
+class CommentCreateView(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -137,7 +138,7 @@ class CommentCreateViewSet(
     queryset = Comment.objects.all()
 
 
-class VideoCreateViewSet(
+class VideoCreateView(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -156,7 +157,7 @@ class VideoCreateViewSet(
     #     super().perform_destroy(instance)
 
 
-class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
+class AuthorVideosView(mixins.ListModelMixin, GenericViewSet):
     """Видео конкретного автора"""
 
     queryset = Video.objects.prefetch_related("tags").select_related("author")
@@ -170,3 +171,19 @@ class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
     @method_decorator(cache_page(settings.CACHE_TTL))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+
+class RatedVideoView(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = VideosSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Video.objects.filter(
+                user_video_relations__user=self.request.user,
+                user_video_relations__vote=1,
+            )
+            .select_related("author")
+            .prefetch_related("tags")
+        )
