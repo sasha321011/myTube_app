@@ -1,17 +1,18 @@
-
 from celery import shared_task
 from django.core.mail import send_mail
-from django.contrib.auth import get_user_model
 from service.models import Video
 from clients.models import Subscription
 
+
 @shared_task
 def send_messages_for_subs(video_id):
+    '''Задача для рассылки писем на почту о новом Video'''
     video = Video.objects.get(id=video_id)
     author = video.author
-    
 
-    subscribers = Subscription.objects.filter(channel=author).select_related('subscriber')
+    subscribers = Subscription.objects.filter(channel=author).select_related(
+        "subscriber"
+    )
 
     for subscription in subscribers:
         subscriber = subscription.subscriber

@@ -23,6 +23,7 @@ from django.views.decorators.cache import cache_page
 class SubscribeCreateDestroy(
     mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet
 ):
+    '''Создание, удаление подписки одного юзера на другого'''
     serializer_class = SubscribeCreateSerializer
     permission_classes = [IsAuthenticated]
 
@@ -59,6 +60,7 @@ class ProfileViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
+    '''Отображение профиля пользователя'''
     queryset = get_user_model().objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -72,6 +74,7 @@ class ProfileViewSet(
 
 
 class SelectedUserViewSet(ReadOnlyModelViewSet):
+    '''Отображение конкретного выбранного пользователя'''
     lookup_field = "username"
     serializer_class = PublicAuthorProfileSerializer
 
@@ -92,6 +95,7 @@ class SelectedUserViewSet(ReadOnlyModelViewSet):
 
 
 class SubsUserViewSet(ReadOnlyModelViewSet):
+    '''Список подписок пользователя'''
     permission_classes = [IsAuthenticated]
     serializer_class = PublicAuthorProfileSerializer
 

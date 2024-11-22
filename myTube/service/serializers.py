@@ -5,6 +5,7 @@ from django.db.models import Count, Q
 
 
 def slug_create(name):
+    '''Генерация слага для видео'''
     existing_slugs = Video.objects.values_list("slug", flat=True)
 
     while True:
@@ -28,6 +29,7 @@ class RecursiveSerializer(serializers.Serializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    '''Сериализатор для отображения комментариев под видео'''
     author_name = serializers.CharField(source="user_comment.username")
 
     # children = RecursiveSerializer(many=True)
@@ -53,12 +55,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class TagsSerializer(serializers.ModelSerializer):
+    '''Сериализатор тегов'''
     class Meta:
         model = TagPost
         fields = ("id", "tag_name", "tag_slug")
 
 
 class VideosSerializer(serializers.ModelSerializer):
+    '''Сериализатор списка видео'''
     author_name = serializers.CharField(source="author.username")
     tags_name = TagsSerializer(many=True, read_only=True, source="tags")
     url = serializers.SerializerMethodField()
@@ -81,6 +85,7 @@ class VideosSerializer(serializers.ModelSerializer):
 
 
 class OneVideoSerializer(serializers.ModelSerializer):
+    '''Сериализатор конкретного видео'''
     author_name = serializers.CharField(source="author.username")
     # email = serializers.CharField(source='author.email')
     comments = CommentSerializer(many=True, read_only=True, source="vid_com")
@@ -105,8 +110,8 @@ class OneVideoSerializer(serializers.ModelSerializer):
         )
 
 
-
 class RatingCreateSerializer(serializers.ModelSerializer):
+    '''Сериализатор для лайков/дизлайков под видео'''
     vid = serializers.PrimaryKeyRelatedField(queryset=Video.objects.all())
 
     class Meta:
@@ -125,7 +130,7 @@ class RatingCreateSerializer(serializers.ModelSerializer):
 
 
 class CommentCreateSerializer(serializers.ModelSerializer):
-
+    '''Сериализатор для создания комментариев'''
     class Meta:
         model = Comment
         fields = ("id", "parent", "text", "video_comment")
@@ -143,9 +148,10 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
 
 class VideoCreateSerializer(serializers.ModelSerializer):
+    '''Сериализатор для создания видео'''
     class Meta:
         model = Video
-        fields = ("name","the_video", "length_time", "pre_view", "tags", "description")
+        fields = ("name", "the_video", "length_time", "pre_view", "tags", "description")
 
     def create(self, validated_data):
         author = self.context["request"].user

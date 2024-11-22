@@ -24,14 +24,9 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from service.utils import VideosFilter
 from django.core.cache import cache
-from service.models import delete_old_file
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
 
-@receiver(post_delete, sender=Video)
-def clear_cache_on_delete(sender, instance, **kwargs):
-    cache_key = f"video_details:{instance.slug}"
-    cache.delete(cache_key)
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 12
@@ -39,8 +34,9 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 12
 
 
-
 class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
+    """Список Video"""
+
     queryset = (
         Video.objects.all()
         .prefetch_related("tags")
@@ -66,6 +62,8 @@ class VideosListViewSet(mixins.ListModelMixin, GenericViewSet):
 
 
 class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    """Конкретное Video"""
+
     lookup_field = "slug"
     serializer_class = OneVideoSerializer
     queryset = (
@@ -103,7 +101,7 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
         response = super().retrieve(request, *args, **kwargs)
         cached_data = {
             "id": response.data["id"],
-            "the_video":response.data['the_video'],
+            "the_video": response.data["the_video"],
             "name": response.data["name"],
             "created_at": response.data["created_at"],
             "length_time": response.data["length_time"],
@@ -116,10 +114,11 @@ class VideoDetailViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
 class RatingCreateViewSet(
     mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
+    """Создание/удаление лайка/дизлайка для видео"""
+
     serializer_class = RatingCreateSerializer
     permission_classes = [IsAuthenticated]
     queryset = UserVideoRelation.objects.all()
@@ -131,6 +130,8 @@ class CommentCreateViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
+    """Создание удаление изменение комментария под видео"""
+
     serializer_class = CommentCreateSerializer
     permission_classes = [IsAuthenticated]
     queryset = Comment.objects.all()
@@ -142,17 +143,22 @@ class VideoCreateViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
+    """Создание удаление изменение видео"""
+
     serializer_class = VideoCreateSerializer
     permission_classes = [IsAuthenticated]
     queryset = Video.objects.all()
 
-    def perform_destroy(self, instance):
-        cache_key = f"video_details:{instance.slug}"
-        cache.delete(cache_key)
-        delete_old_file(instance.the_video.path)
-        super().perform_destroy(instance)
+    # def perform_destroy(self, instance):
+    #     cache_key = f"video_details:{instance.slug}"
+    #     cache.delete(cache_key)
+    #     delete_old_file(instance.the_video.path)
+    #     super().perform_destroy(instance)
+
 
 class AuthorVideosViewSet(mixins.ListModelMixin, GenericViewSet):
+    """Видео конкретного автора"""
+
     queryset = Video.objects.prefetch_related("tags").select_related("author")
     serializer_class = VideosSerializer
     pagination_class = StandardResultsSetPagination

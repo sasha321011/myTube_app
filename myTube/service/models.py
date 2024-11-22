@@ -3,19 +3,15 @@ from django.db import models
 from mptt.models import MPTTModel
 from django.urls import reverse
 from django.core.validators import FileExtensionValidator
-import os
-
-
-def delete_old_file(path_file):
-    if os.path.exists(path_file):
-        os.remove(path_file)
 
 
 def get_path_upload_video(instance, file):
+    '''Путь для сохранения видео'''
     return f"videos/{file}"
 
 
 class Video(models.Model):
+    '''Модель видео'''
     name = models.CharField(max_length=50)
     slug = models.SlugField(unique=True)
     author = models.ForeignKey(
@@ -35,21 +31,23 @@ class Video(models.Model):
     )
     description = models.TextField(blank=True)
 
-    def delete(self, *args, **kwargs):
-        if self.the_video:
-            delete_old_file(self.the_video.path)
-        super().delete(*args, **kwargs)
+    # def delete(self, *args, **kwargs):
+    #     if self.the_video:
+    #         delete_old_file(self.the_video.path)
+    #     super().delete(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("video-detail", kwargs={"slug": self.slug})
 
 
 class TagPost(models.Model):
+    '''Модель тегов к видео'''
     tag_name = models.CharField(max_length=50)
     tag_slug = models.SlugField(unique=True)
 
 
 class Comment(MPTTModel, models.Model):
+    '''Модель комментариев для создания комментариев под видео'''
     video_comment = models.ForeignKey(
         Video, related_name="vid_com", on_delete=models.CASCADE
     )
@@ -64,6 +62,7 @@ class Comment(MPTTModel, models.Model):
 
 
 class UserVideoRelation(models.Model):
+    '''Модель для создания лайков/дизлайков под видео'''
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     vid = models.ForeignKey(
         Video, on_delete=models.CASCADE, related_name="user_video_relations"

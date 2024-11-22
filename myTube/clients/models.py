@@ -1,12 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-import os
-from django.core.validators import FileExtensionValidator
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
+
+
 
 class User(AbstractUser):
+    '''Расширенаая модель User '''
     photo = models.ImageField(
         upload_to="user_photos/",
         blank=True,
@@ -28,6 +27,7 @@ class User(AbstractUser):
     
 
 class Subscription(models.Model):
+    '''Модель подписки одного пользователя на другого'''
     subscriber = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE, related_name="subscribers"
     )
@@ -41,10 +41,3 @@ class Subscription(models.Model):
 
 
 
-@receiver(post_delete, sender=get_user_model())
-def delete_user_avatar(sender, instance, **kwargs):
-    """Удаление аватарки пользователя при удалении пользователя"""
-    if instance.photo:
-        photo_path = instance.photo.path
-        if os.path.isfile(photo_path):
-            os.remove(photo_path)
