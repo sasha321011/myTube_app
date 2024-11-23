@@ -97,8 +97,10 @@ class AuthorVideosList(models.Model):
     #     super().save(*args, **kwargs)
 
 
-class AddAuthorListToUser(models.Model):
-    '''Модель для добавления плейлиста автора юзеру'''
-    lst= models.ManyToManyField(AuthorVideosList,related_name='user_list')
-    user=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
-    
+class PlaylistLike(models.Model):
+    """Модель для лайков плейлистов"""
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    playlist = models.ForeignKey(AuthorVideosList, on_delete=models.CASCADE, related_name="likes")
+
+    class Meta:
+        unique_together = ("user", "playlist")

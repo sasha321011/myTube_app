@@ -1,6 +1,6 @@
 from urllib import request
 from rest_framework import serializers
-from service.models import Video, Comment, TagPost, UserVideoRelation, AuthorVideosList, AddAuthorListToUser
+from service.models import Video, Comment, TagPost, UserVideoRelation, AuthorVideosList, PlaylistLike
 import uuid
 from django.db.models import Count, Q
 from django.utils.text import slugify
@@ -209,30 +209,22 @@ class AuthorVideosListSerializer(serializers.ModelSerializer):
         return instance
 
 
-class AddAuthorVideosListToUserSerializer(serializers.ModelSerializer):
-    """Сериализатор для добавления плейлиста пользователю."""
-    lst = serializers.SlugRelatedField(
-        queryset=AuthorVideosList.objects.all(),
-        slug_field='slug',
-        many=True
-    )
-    
+class PlaylistLikeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AddAuthorListToUser
-        fields = ("user", "lst")  
-    
-    def create(self, validated_data):
+        model = PlaylistLike
+        fields = ("playlist",)
+
+    def validate_playlist(self, playlist):
         user = self.context["request"].user
-        lst = validated_data["lst"]
-        
-        add_to_user_list, created = AddAuthorListToUser.objects.get_or_create(user=user)
-        
-        add_to_user_list.lst.add(*lst)  
-        return add_to_user_list
-    
+        if PlaylistLike.objects.filter(user=user, playlist=playlist).exists():
+            raise serializers.ValidationError("Вы уже лайкнули этот плейлист.")
+        return playlist
+
 class ListAuthorVideosListSerializer(serializers.ModelSerializer):
     #vids = VideosSerializer(many=True)
 
     class Meta:
         model = AuthorVideosList
         fields = ("id", "name","vids","slug")
+
+

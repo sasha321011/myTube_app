@@ -9,7 +9,13 @@ from rest_framework.viewsets import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import mixins
-from service.models import Video, UserVideoRelation, Comment, AuthorVideosList, AddAuthorListToUser
+from service.models import (
+    Video,
+    UserVideoRelation,
+    Comment,
+    AuthorVideosList,
+    PlaylistLike,
+)
 from service.serializers import (
     VideosSerializer,
     OneVideoSerializer,
@@ -18,8 +24,8 @@ from service.serializers import (
     VideoCreateSerializer,
     CommentSerializer,
     AuthorVideosListSerializer,
-    AddAuthorVideosListToUserSerializer,
-    ListAuthorVideosListSerializer
+    PlaylistLikeSerializer,
+    ListAuthorVideosListSerializer,
 )
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -197,32 +203,52 @@ class MakeAuthorVideosListView(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
-    #mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
     """Создание плейлистов видео автора"""
+
     serializer_class = AuthorVideosListSerializer
-    lookup_field = 'slug'
-    queryset = AuthorVideosList.objects.all()
 
-    def get_queryset(self):
-        slug = self.kwargs.get("slug")
-        return super().get_queryset().filter(slug=slug)
-    
 
-class AddAuthorVideosListView(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.ListModelMixin,
-    #mixins.RetrieveModelMixin,
-    GenericViewSet,
+class PlaylistLikeViewSet(
+    mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet
 ):
-    serializer_class = AuthorVideosListSerializer
-    lookup_field = 'slug'
-    queryset = AuthorVideosList.objects.all()
+    """Лайк/дизлайк плейлиста"""
+
+    queryset = PlaylistLike.objects.all()
+    serializer_class = PlaylistLikeSerializer
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class LikedPlaylistsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """Вывод списка плейлистов, лайкнутых пользователем"""
+
+    serializer_class = ListAuthorVideosListSerializer
+
+    def get_queryset(self):
+        return AuthorVideosList.objects.filter(likes__user=self.request.user)
+
+
+class AuthorPlaylistsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """Вывод плейлистов определенного автора"""
+
+    serializer_class = ListAuthorVideosListSerializer
+
+    def get_queryset(self):
+        author_username = self.kwargs.get("author")
+        return AuthorVideosList.objects.filter(author__username=author_username)
+
+
+class PlaylistVideosViewSet(ReadOnlyModelViewSet):
+    """Список видео из определенного плейлиста"""
+
+    serializer_class = VideosSerializer
 
     def get_queryset(self):
         slug = self.kwargs.get("slug")
-        return super().get_queryset().filter(user__user_list=self.request.user)
+        return Video.objects.filter(video_lst__slug=slug)
