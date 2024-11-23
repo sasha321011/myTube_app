@@ -209,4 +209,7 @@ CACHE_TTL = 3
 AUTH_USER_MODEL = 'clients.User'
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 393d63e (Day 22 - 4)
