@@ -161,7 +161,7 @@ DEBUG_TOOLBAR_CONFIG = {
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'ACTIVATION_URL': '#/activation/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
     'SERIALIZERS': {'user_create': 'clients.serializers.CustomUserCreateSerializer',},
 }
@@ -209,7 +209,3 @@ CACHE_TTL = 3
 AUTH_USER_MODEL = 'clients.User'
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 393d63e (Day 22 - 4)

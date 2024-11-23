@@ -206,7 +206,7 @@ class MakeAuthorVideosListView(
     GenericViewSet,
 ):
     """Создание плейлистов видео автора"""
-
+    permission_classes = [IsAuthenticated]
     serializer_class = AuthorVideosListSerializer
 
 
@@ -217,7 +217,7 @@ class PlaylistLikeViewSet(
 
     queryset = PlaylistLike.objects.all()
     serializer_class = PlaylistLikeSerializer
-
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
 
@@ -229,7 +229,7 @@ class LikedPlaylistsViewSet(mixins.ListModelMixin, GenericViewSet):
     """Вывод списка плейлистов, лайкнутых пользователем"""
 
     serializer_class = ListAuthorVideosListSerializer
-
+    permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return AuthorVideosList.objects.filter(likes__user=self.request.user)
 
