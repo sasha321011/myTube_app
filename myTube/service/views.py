@@ -9,7 +9,7 @@ from rest_framework.viewsets import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import mixins
-from service.models import Video, UserVideoRelation, Comment
+from service.models import Video, UserVideoRelation, Comment, AuthorVideosList, AddAuthorListToUser
 from service.serializers import (
     VideosSerializer,
     OneVideoSerializer,
@@ -17,6 +17,9 @@ from service.serializers import (
     CommentCreateSerializer,
     VideoCreateSerializer,
     CommentSerializer,
+    AuthorVideosListSerializer,
+    AddAuthorVideosListToUserSerializer,
+    ListAuthorVideosListSerializer
 )
 from django.conf import settings
 from django.utils.decorators import method_decorator
@@ -116,6 +119,7 @@ class VideoDetailView(mixins.RetrieveModelMixin, GenericViewSet):
 class RatingCreateView(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
     GenericViewSet,
 ):
     """Создание/удаление лайка/дизлайка для видео"""
@@ -187,3 +191,38 @@ class RatedVideoView(mixins.ListModelMixin, GenericViewSet):
             .select_related("author")
             .prefetch_related("tags")
         )
+
+
+class MakeAuthorVideosListView(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    #mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
+    """Создание плейлистов видео автора"""
+    serializer_class = AuthorVideosListSerializer
+    lookup_field = 'slug'
+    queryset = AuthorVideosList.objects.all()
+
+    def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        return super().get_queryset().filter(slug=slug)
+    
+
+class AddAuthorVideosListView(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    #mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
+    serializer_class = AuthorVideosListSerializer
+    lookup_field = 'slug'
+    queryset = AuthorVideosList.objects.all()
+
+    def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        return super().get_queryset().filter(user__user_list=self.request.user)

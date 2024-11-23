@@ -8,6 +8,9 @@ from service.views import (
     AuthorVideosView,
     VideoDetailView,
     RatedVideoView,
+    MakeAuthorVideosListView,
+    AddAuthorVideosListView,
+    
 )
 
 router = DefaultRouter()
@@ -16,6 +19,8 @@ router.register(r"rate", RatingCreateView, basename="rate")
 router.register(r"com", CommentCreateView, basename="comment")
 router.register(r"upload-video", VideoCreateView, basename="upload-video")
 router.register(r"rated-videos", RatedVideoView, basename="rated-videos")
+router.register(r"make-playlist", MakeAuthorVideosListView, basename="make-playlist")
+router.register(r"playlist", AddAuthorVideosListView, basename="playlist")
 # router.register(r"author-videos", AuthorVideosViewSet, basename="author-videos")
 
 urlpatterns = [
@@ -30,6 +35,8 @@ urlpatterns = [
         name="author-videos",
     ),
 
+    path('make-playlist/<slug:slug>/', MakeAuthorVideosListView.as_view({'get': 'retrieve'})),  # Для вывода по слагу
 ]
+
 
 urlpatterns += router.urls

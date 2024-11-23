@@ -76,3 +76,29 @@ class UserVideoRelation(models.Model):
     ]
 
     vote = models.SmallIntegerField(choices=VOTE_CHOICES, null=True)
+
+
+class AuthorVideosList(models.Model):
+    '''Модель для создания плейлиста дял автора'''
+    vids = models.ManyToManyField(Video, related_name="video_lst")
+    name = models.CharField(max_length=100)
+    author = models.ForeignKey(get_user_model(),on_delete=models.CASCADE, related_name="user_video_lst")
+    slug=models.SlugField(unique=True,blank=True,null=True)
+    # def save(self, *args, **kwargs):
+    #     # Генерация slug, если он пустой
+    #     if not self.slug:
+    #         # Генерируем slug из названия
+    #         self.slug = slugify(self.name)
+    #         # Добавляем случайную строку для уникальности, если slug уже существует
+    #         while AuthorVideosList.objects.filter(slug=self.slug).exists():
+    #             random_string = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
+    #             self.slug = f"{slugify(self.name)}-{random_string}"
+
+    #     super().save(*args, **kwargs)
+
+
+class AddAuthorListToUser(models.Model):
+    '''Модель для добавления плейлиста автора юзеру'''
+    lst= models.ManyToManyField(AuthorVideosList,related_name='user_list')
+    user=models.ForeignKey(get_user_model(),on_delete=models.CASCADE)
+    

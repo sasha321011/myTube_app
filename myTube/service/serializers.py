@@ -1,8 +1,9 @@
+from urllib import request
 from rest_framework import serializers
-from service.models import Video, Comment, UserVideoRelation, TagPost, UserVideoRelation
+from service.models import Video, Comment, TagPost, UserVideoRelation, AuthorVideosList, AddAuthorListToUser
 import uuid
 from django.db.models import Count, Q
-
+from django.utils.text import slugify
 
 def slug_create(name):
     '''Генерация слага для видео'''
@@ -173,3 +174,65 @@ class VideoCreateSerializer(serializers.ModelSerializer):
         )
         author_video.tags.set(tags)
         return author_video
+
+
+class AuthorVideosListSerializer(serializers.ModelSerializer):
+    vids = VideosSerializer(many=True)
+
+    class Meta:
+        model = AuthorVideosList
+        fields = ("id", "name","vids","slug")
+
+    def validate_vids_ids(self, vids):
+        """Проверяем, что все видео принадлежат текущему пользователю."""
+        user = self.context["request"].user
+        for video in vids:
+            if video.author != user:
+                raise serializers.ValidationError(
+                    f"Видео {video.name} не принадлежит вам."
+                )
+        return vids
+
+    def create(self, validated_data):
+        name = validated_data.get('name')
+        slug = slugify(name)
+        vids = validated_data.pop("vids_ids", [])
+        author_videos_list = AuthorVideosList.objects.create(**validated_data)
+        author_videos_list.vids.set(vids)
+        return author_videos_list
+
+    def update(self, instance, validated_data):
+        vids = validated_data.pop("vids_ids", [])
+        instance.name = validated_data.get("name", instance.name)
+        instance.vids.set(vids)  
+        instance.save()
+        return instance
+
+
+class AddAuthorVideosListToUserSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления плейлиста пользователю."""
+    lst = serializers.SlugRelatedField(
+        queryset=AuthorVideosList.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+    
+    class Meta:
+        model = AddAuthorListToUser
+        fields = ("user", "lst")  
+    
+    def create(self, validated_data):
+        user = self.context["request"].user
+        lst = validated_data["lst"]
+        
+        add_to_user_list, created = AddAuthorListToUser.objects.get_or_create(user=user)
+        
+        add_to_user_list.lst.add(*lst)  
+        return add_to_user_list
+    
+class ListAuthorVideosListSerializer(serializers.ModelSerializer):
+    #vids = VideosSerializer(many=True)
+
+    class Meta:
+        model = AuthorVideosList
+        fields = ("id", "name","vids","slug")
