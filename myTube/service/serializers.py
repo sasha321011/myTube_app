@@ -33,10 +33,9 @@ class CommentSerializer(serializers.ModelSerializer):
     '''Сериализатор для отображения комментариев под видео'''
     author_name = serializers.CharField(source="user_comment.username")
 
-    # children = RecursiveSerializer(many=True)
-    # children = serializers.SerializerMethodField()
+
     class Meta:
-        # list_serializer_class = FilterCommentListSerializer
+      
         model = Comment
         fields = ("id", "author_name", "text", "parent")
 
@@ -73,12 +72,14 @@ class VideosSerializer(serializers.ModelSerializer):
         fields = (
             "name",
             "url",
+
             "created_at",
             "length_time",
             "pre_view",
             "author",
             "author_name",
             "tags_name",
+            "cats",
         )
 
     def get_url(self, obj):
@@ -108,12 +109,15 @@ class OneVideoSerializer(serializers.ModelSerializer):
             "comments",
             "likes",
             "dislikes",
+            "description",
+            "cats",
         )
 
 
 class RatingCreateSerializer(serializers.ModelSerializer):
     '''Сериализатор для лайков/дизлайков под видео'''
     vid = serializers.PrimaryKeyRelatedField(queryset=Video.objects.all())
+    vote = serializers.ChoiceField(choices=[(1, 'Like'), (-1, 'Dislike')])
 
     class Meta:
         model = UserVideoRelation
@@ -150,40 +154,73 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
 class VideoCreateSerializer(serializers.ModelSerializer):
     '''Сериализатор для создания видео'''
+    tags = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True
+    )
+    
     class Meta:
         model = Video
-        fields = ("name", "the_video", "length_time", "pre_view", "tags", "description")
+        fields = ("name", "the_video", "length_time", "pre_view", "tags", "description","cats")
+
+
 
     def create(self, validated_data):
+        tags_data = validated_data.pop("tags", [])
         author = self.context["request"].user
-        name = validated_data["name"]
-        # slug = validated_data["slug"]
-        length_time = validated_data["length_time"]
-        pre_view = validated_data["pre_view"]
-        tags = validated_data.pop("tags", [])
-        description = validated_data["description"]
-        the_video = validated_data["the_video"]
-        author_video, created = Video.objects.update_or_create(
+
+        video = Video.objects.create(
             author=author,
-            name=name,
-            length_time=length_time,
-            slug=slug_create(name),
-            pre_view=pre_view,
-            description=description,
-            the_video=the_video,
+            name=validated_data.get("name"),
+            slug=slug_create(validated_data.get("name")),
+            length_time=validated_data.get("length_time", 0),
+            pre_view=validated_data.get("pre_view"),
+            description=validated_data.get("description", ""),
+            the_video=validated_data.get("the_video"),
+            cats=validated_data.get("cats")
         )
-        author_video.tags.set(tags)
-        return author_video
+
+        print("Validated data:", validated_data)
+        video.tags.set(tags_data)
+
+        return video
+
+
+
+
+
+
+    # def create(self, validated_data):
+    #     author = self.context["request"].user
+    #     name = validated_data["name"]
+    #     # slug = validated_data["slug"]
+    #     length_time = validated_data["length_time"]
+    #     pre_view = validated_data["pre_view"]
+    #     tags = validated_data.pop("tags", [])
+    #     description = validated_data["description"]
+    #     the_video = validated_data["the_video"]
+    #     author_video, created = Video.objects.update_or_create(
+    #         author=author,
+    #         name=name,
+    #         length_time=length_time,
+    #         slug=slug_create(name),
+    #         pre_view=pre_view,
+    #         description=description,
+    #         the_video=the_video,
+    #     )
+    #     author_video.tags.set(tags)
+    #     return author_video
 
 
 class AuthorVideosListSerializer(serializers.ModelSerializer):
-    vids = VideosSerializer(many=True)
-
+    vids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Video.objects.all()
+    )
     class Meta:
         model = AuthorVideosList
-        fields = ("id", "name","vids","slug")
+        fields = ("id", "name", "vids", "slug")
 
-    def validate_vids_ids(self, vids):
+    def validate_vids(self, vids):
         """Проверяем, что все видео принадлежат текущему пользователю."""
         user = self.context["request"].user
         for video in vids:
@@ -194,17 +231,23 @@ class AuthorVideosListSerializer(serializers.ModelSerializer):
         return vids
 
     def create(self, validated_data):
+        user = self.context["request"].user  # Получаем текущего пользователя
         name = validated_data.get('name')
         slug = slugify(name)
-        vids = validated_data.pop("vids_ids", [])
-        author_videos_list = AuthorVideosList.objects.create(**validated_data)
+        vids = validated_data.pop("vids", [])  # Исправлено на "vids"
+        author_videos_list = AuthorVideosList.objects.create(
+            author=user,  # Присваиваем текущего пользователя полю author
+            **validated_data
+        )
         author_videos_list.vids.set(vids)
         return author_videos_list
 
     def update(self, instance, validated_data):
-        vids = validated_data.pop("vids_ids", [])
+        user = self.context["request"].user  # Получаем текущего пользователя
+        vids = validated_data.pop("vids", [])  # Исправлено на "vids"
         instance.name = validated_data.get("name", instance.name)
-        instance.vids.set(vids)  
+        instance.vids.set(vids)  # set() используется для обновления ManyToMany
+        instance.author = user  # Обновляем поле author, если нужно
         instance.save()
         return instance
 

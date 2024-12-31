@@ -22,7 +22,7 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 # Application definition
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50485760
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
 
     "rest_framework.authtoken",
     'djoser',
+    "corsheaders",
 ]
 
 
@@ -56,7 +57,19 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+
+    "corsheaders.middleware.CorsMiddleware",
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080", 
+    'http://127.0.0.1:8080', 
+]
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    
+]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "core.urls"
 
@@ -161,7 +174,9 @@ DEBUG_TOOLBAR_CONFIG = {
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': '#/activation/{uid}/{token}',
+    #'ACTIVATION_URL': '#/activation/{uid}/{token}',
+    'ACTIVATION_URL': 'http://127.0.0.1:8080/activation/{uid}/{token}',
+
     'SEND_ACTIVATION_EMAIL': True,
     'SERIALIZERS': {'user_create': 'clients.serializers.CustomUserCreateSerializer',},
 }
@@ -207,5 +222,7 @@ CACHES = {
 
 CACHE_TTL = 3
 AUTH_USER_MODEL = 'clients.User'
+
+
 
 

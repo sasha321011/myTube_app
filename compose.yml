@@ -68,6 +68,17 @@ services:
       - redis
     ports:
       - "5555:5555"
+  frontend:
+    build:
+      context: ../frontend/vue-mytube
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../frontend/vue-mytube:/app
+    command: >
+      sh -c "npm run serve"
+    environment:
+      - NODE_ENV=development
 
   nginx:
     image: nginx:alpine
@@ -79,4 +90,8 @@ services:
       - ./myTube/media:/myTube/media
     depends_on:
       - web-app
-    restart: always  # Автоперезапуск при ошибке
+      - frontend
+    command: >
+      sh -c "sleep 10 && nginx -g 'daemon off;'"
+    #restart: always  
+
