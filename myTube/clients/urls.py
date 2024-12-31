@@ -9,7 +9,7 @@ from django.urls import path, include
 
 
 profile_detail = ProfileViewSet.as_view({
-    'get': 'list',    # чвысвыаЯЫАВы
+    'get': 'list',    # ч
     'put': 'update',  
 })
 
