@@ -83,6 +83,7 @@ class ProfileViewSet(
         return super().retrieve(request, *args, **kwargs)
 
 
+
 class SelectedUserViewSet(ReadOnlyModelViewSet):
     '''Отображение конкретного выбранного пользователя'''
     lookup_field = "username"
