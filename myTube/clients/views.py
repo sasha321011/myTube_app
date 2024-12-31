@@ -55,7 +55,8 @@ class SubscribeCreateDestroy(
 
 
 class ProfileViewSet(
-    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    #mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,
@@ -67,7 +68,16 @@ class ProfileViewSet(
 
     def get_object(self):
         return self.request.user
-
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True) 
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+    def list(self, request):
+        user = request.user
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data)
     @method_decorator(cache_page(settings.CACHE_TTL))
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)

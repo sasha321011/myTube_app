@@ -13,6 +13,7 @@ from service.views import (
     AuthorPlaylistsViewSet,
     LikedPlaylistsViewSet,
     PlaylistVideosViewSet,
+
 )
 
 router = DefaultRouter()
@@ -42,6 +43,12 @@ urlpatterns = [
         AuthorPlaylistsViewSet.as_view({"get": "list"}),
         name="author-playlists",
     ),
+        path(
+        "author-videos/<str:author>/",
+        AuthorVideosView.as_view({"get": "list"}),
+        name="author-videos",
+    ),
+
 ]
 
 

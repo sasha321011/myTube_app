@@ -49,3 +49,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ["id", "username", "email", "date_birth", "first_name","photo"]
+        extra_kwargs = {
+            "id": {"read_only": True},  # ID нельзя изменять
+            "username": {"required": True},
+            "email": {"required": True},
+            "date_birth": {"required": False},
+            "first_name": {"required": False},
+            "photo": {"required": False},
+        }

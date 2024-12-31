@@ -36,13 +36,16 @@ from service.utils import VideosFilter
 from django.core.cache import cache
 from django.dispatch import receiver
 from django.db.models.signals import post_delete
-
+from service.tasks import process_video_upload
 
 class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 12
+    page_size = 2
     page_size_query_param = "page_size"
-    max_page_size = 12
-
+    max_page_size = 2
+    def paginate_queryset(self, queryset, request, view=None):
+        if not queryset.ordered:
+            queryset = queryset.order_by('id')
+        return super().paginate_queryset(queryset, request, view)
 
 class VideosListView(mixins.ListModelMixin, GenericViewSet):
     """Список Video"""
@@ -53,7 +56,7 @@ class VideosListView(mixins.ListModelMixin, GenericViewSet):
         .select_related("author")
         .only("id", "name", "slug", "created_at", "length_time", "pre_view", "author")
         .distinct()
-    )
+    ).order_by('id')
     serializer_class = VideosSerializer
     pagination_class = StandardResultsSetPagination
 
@@ -68,6 +71,13 @@ class VideosListView(mixins.ListModelMixin, GenericViewSet):
 
     @method_decorator(cache_page(settings.CACHE_TTL))
     def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+
+        ordering = self.request.GET.get('ordering')
+        if ordering:
+            queryset = queryset.order_by(ordering)
+
         return super().list(request, *args, **kwargs)
 
 
@@ -131,7 +141,7 @@ class RatingCreateView(
     """Создание/удаление лайка/дизлайка для видео"""
 
     serializer_class = RatingCreateSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     queryset = UserVideoRelation.objects.all()
 
 
@@ -160,12 +170,20 @@ class VideoCreateView(
     permission_classes = [IsAuthenticated]
     queryset = Video.objects.all()
 
-    # def perform_destroy(self, instance):
-    #     cache_key = f"video_details:{instance.slug}"
-    #     cache.delete(cache_key)
-    #     delete_old_file(instance.the_video.path)
-    #     super().perform_destroy(instance)
+    def perform_create(self, serializer):
 
+        video = serializer.save(author=self.request.user)
+
+
+        uploaded_file = self.request.FILES.get('the_video')
+        if uploaded_file:
+
+            filename = uploaded_file.name
+            file_content = uploaded_file.read()
+
+            process_video_upload.delay(video.id, filename, file_content)
+        else:
+            raise ValueError("Файл видео обязателен для загрузки")
 
 class AuthorVideosView(mixins.ListModelMixin, GenericViewSet):
     """Видео конкретного автора"""
@@ -217,7 +235,7 @@ class PlaylistLikeViewSet(
 
     queryset = PlaylistLike.objects.all()
     serializer_class = PlaylistLikeSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
 
